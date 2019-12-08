@@ -4,15 +4,14 @@ import java.io.IOException
 import java.nio.charset.StandardCharsets
 
 import cn.stanfen.Config._
-import cn.stanfen.webhook.WebHook
 import com.alibaba.fastjson.JSONObject
 import org.apache.http.client.ClientProtocolException
-import org.apache.http.{HttpHost, HttpStatus}
 import org.apache.http.client.config.RequestConfig
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.{BasicCredentialsProvider, CloseableHttpClient, HttpClients}
 import org.apache.http.util.EntityUtils
+import org.apache.http.{HttpHost, HttpStatus}
 
 class Robot(webHook: String, accessToken: String) {
   lazy val jsonObj = new JSONObject()
@@ -37,8 +36,8 @@ class Robot(webHook: String, accessToken: String) {
     post
   }
 
-  def sendMsg(msg: String): DingTalkResponse = {
-    val res = DingTalkResponse(HttpStatus.SC_NOT_FOUND)
+  def sendMsg(msg: String) = {
+    var res = (HttpStatus.SC_NOT_FOUND, "")
     val post = constructHttpPost(msg)
     val client: CloseableHttpClient = if (isProxyEnable) {
       val (config, provider) = setProxy(proxy, port, username, password)
@@ -51,14 +50,8 @@ class Robot(webHook: String, accessToken: String) {
     try {
       val rsp = client.execute(post)
       try {
-        if (rsp.getStatusLine().getStatusCode == HttpStatus.SC_OK) {
-          val result: String = EntityUtils.toString(rsp.getEntity)
-          val toJson = jsonObj.getJSONObject(result)
-          println(result)
-          val errCode = toJson.getInteger("errcode")
-          val msg = toJson.getString("errmsg")
-          res.copy(status =  HttpStatus.SC_OK, errorCode = errCode, errMsg = msg)
-        }
+        val result: String = EntityUtils.toString(rsp.getEntity)
+        res = (rsp.getStatusLine().getStatusCode, result)
       }
       catch {
         case io: IOException => println(s"http response IOException ${io}")
