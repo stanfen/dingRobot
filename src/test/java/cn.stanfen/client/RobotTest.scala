@@ -2,7 +2,7 @@ package cn.stanfen.client
 
 import cn.stanfen.Config
 import cn.stanfen.formatter.TextMessage
-import org.scalatest.{FlatSpec, FunSuite, Matchers, fixture}
+import org.scalatest.{FlatSpec, Matchers}
 
 class RobotTest extends FlatSpec with Matchers {
   it should("test post to dingtalk") in {
